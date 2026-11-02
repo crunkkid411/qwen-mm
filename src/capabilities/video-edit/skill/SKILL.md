@@ -61,8 +61,7 @@ switch and stop asking.
    `bash <skill-root>/scripts/scene_gate.sh <videos_dir>/edit/project.md`
    — no master render on a FAIL, and its verbatim block goes into the
    project log (`engines/hyperframes.md` § Scene-loop assembly). Mechanical
-   ones in FFmpeg, through the deterministic edit engine: write a spec and
-   call `render_edit` (`engines/edit-engine.md`).
+   ones in FFmpeg.
 8. **Mix** — two-track doctrine after picture lock (`craft/sound-mix.md`).
 9. **Final review** — self pass + independent tool-verified pass, planned as
    separate steps (`review/final-review.md`).
@@ -197,7 +196,7 @@ Domain rules use the same bracket notation inside their owning doc:
 | `assets/` | Bundled reusable files inside this skill: `fonts/` `sfx/` `bgm/` `images/` `clips/` (browse: `assets/local-media.html`; recipe menus: `assets/index.html`) plus `atom-packs/` — per-look reviewed atom packs (atoms.json = machine-readable recipe, preview.html = review page) — check here BEFORE downloading or generating |
 | `looks/` | Named style recipes (paper-collage, freeze-punch, film-reel, brush, gallery-ripple, big-number, neon-ui-tech, prompt-to-product-ui) |
 | `workflows/` | End-to-end flows: `style-replication.md`, `vlog-multi-source.md` |
-| `engines/` | Ownership & routing: HyperFrames handoff, FFmpeg prep/finishing, deterministic spec-driven edit engine (`edit-engine.md`) |
+| `engines/` | Ownership & routing: HyperFrames handoff, FFmpeg prep/finishing |
 | `mcps/` | Perception tools, generation services, sample-first rule |
 | `review/` | Source review, final review, project log |
 | `scripts/` | Verified measurement tools (see `scripts/README.md`) |

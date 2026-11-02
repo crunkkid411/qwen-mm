@@ -17,12 +17,9 @@ GENERATION_TOOLS = {
 }
 
 
-LOCAL_EDIT_TOOLS = {"analyze_footage", "render_edit"}
-
-
-def test_lists_the_generation_and_local_edit_tools():
+def test_lists_the_generation_tools():
     names = {t["name"] for t in ve.list_tools()}
-    assert names == GENERATION_TOOLS | LOCAL_EDIT_TOOLS
+    assert names == GENERATION_TOOLS
 
 
 def test_every_tool_has_schema_and_handler():
