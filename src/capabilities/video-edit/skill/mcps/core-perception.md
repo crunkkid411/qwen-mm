@@ -13,7 +13,8 @@ Core perception tools are the agent's eyes. They provide visual/audio evidence s
 | `read_video` | Inspect video frames over a time window at chosen fps/resolution budget |
 | `read_image` | Inspect images or saved frames |
 | `visualize` | Inspect non-video files or mixed media inputs |
-| `transcribe_audio` | Understand speech and produce timestamps |
+| `omni_asr_timestamped` | Speech transcript with utterance timestamps, heard directly by the configured omni model |
+| `perceive_media` | Ask the omni model about audio, video, or both together (what is said, heard, and shown, and when), for the whole file or a time range |
 | `save_view` | Save exact frames for evidence or follow-up analysis |
 | `vision_chat` | Ask a general visual assistant for an independent second opinion on sampled frames/videos |
 
@@ -78,6 +79,16 @@ Record any `vision_chat` finding in the final review. If it finds an issue the a
 - `read_image` / frame 0:18.0 — subtitle is readable and does not cover face
 ```
 
+## Omni Model Configuration
+
+`omni_asr_timestamped` and `perceive_media` ship with the `qwen-mm-plugins-api`
+plugin and call whichever omni (audio + video) model is configured. They are
+not tied to Qwen: `QWEN_MM_OMNI_BASE_URL`, `QWEN_MM_OMNI_API_KEY` and
+`QWEN_MM_API_OMNI_MODEL` point them at any OpenAI-compatible provider or local
+server; `QWEN_MM_OMNI_VIDEO_INPUT=frames` serves models that take images and
+audio but not video files. Setup: the installation guide's omni-provider
+section.
+
 ## Failure Handling
 
 If required perception tools are unavailable:
@@ -90,7 +101,7 @@ If required perception tools are unavailable:
    ffmpeg and read them with the agent's native image input —
    `ffmpeg -i IN.mp4 -vf fps=1 frames/f_%04d.jpg` for overview,
    `-ss <t> -vf fps=6 -frames:v 12` re-reads for critical windows, plus
-   `scripts/contact_sheet.sh` for full-duration evidence. `transcribe_audio`
+   `scripts/contact_sheet.sh` for full-duration evidence. `omni_asr_timestamped`
    missing ⇒ speech-led edits lose their basis — say so.
 4. If not even frame extraction + image reading is possible, stop and ask
    before making content-driven decisions.

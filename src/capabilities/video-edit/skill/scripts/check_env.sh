@@ -128,7 +128,7 @@ fi
 
 echo
 echo "== MCP services (verify in the AGENT runtime, not this shell) =="
-echo "  NOTE    perception: read_video/read_image/visualize/transcribe_audio/vision_chat"
+echo "  NOTE    perception: read_video/read_image/visualize/omni_asr_timestamped/perceive_media/vision_chat"
 echo "  NOTE    generation: qwen_image/qwen_tts/wan_t2v/happyhorse/wan_s2v"
 echo "  NOTE    a local schema file is NOT proof of availability — check the live tool list"
 

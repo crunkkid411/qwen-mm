@@ -1,4 +1,9 @@
-"""Qwen-Omni client (shared): streaming compatible-mode chat + robust JSON + A/V content parts.
+"""Omni client (shared): streaming OpenAI-compatible chat + robust JSON + A/V content parts.
+
+Works with any omni (audio + video) model behind an OpenAI-compatible endpoint: DashScope Qwen-Omni
+by default, or another provider / local server via QWEN_MM_OMNI_BASE_URL. Part builders emit the
+DashScope wire form; ``call_omni`` converts it to the standard OpenAI form for other hosts (see
+``omni_protocol``).
 
 The Omni model (default ``qwen3.8-omni-flash``) reads video frames AND the embedded audio track in a
 single call, and — unlike the plain VL path in ``api_openai`` — it **must** be called with
@@ -29,7 +34,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-from shared.api_openai import b64_len, expand_video_frames, is_model_url, resolve_openai_endpoint
+from shared.api_openai import _origin, b64_len, expand_video_frames, is_model_url, resolve_openai_endpoint
 from shared.dashscope_upload import OSS_RESOLVE_HEADER, contains_temporary_oss_url
 from shared.env import ConfigurationError, get_bool_env, get_env, get_int_env
 
@@ -107,8 +112,68 @@ class PayloadTooLargeError(ValueError):
 
 
 def resolve_omni_endpoint(arguments: dict[str, Any]) -> tuple[str, str]:
-    """(base_url, api_key) for an Omni call — same precedence as the OpenAI-compatible path."""
-    return resolve_openai_endpoint(arguments)
+    """(base_url, api_key) for an Omni call.
+
+    URL precedence: explicit argument → QWEN_MM_OMNI_BASE_URL → DASHSCOPE_BASE_URL. Key precedence:
+    explicit argument → QWEN_MM_OMNI_API_KEY (for the configured Omni URL) → the OpenAI-compatible
+    path's host key / DASHSCOPE_API_KEY / "EMPTY" rules. Setting the Omni URL points every Omni tool
+    at another provider or a local server without moving the VL endpoint.
+    """
+    omni_url = get_env("QWEN_MM_OMNI_BASE_URL")
+    base_url = arguments.get("base_url") or omni_url
+    if not base_url:
+        return resolve_openai_endpoint(arguments)
+    api_key = arguments.get("api_key")
+    if not api_key and omni_url and _origin(base_url) == _origin(omni_url):
+        api_key = get_env("QWEN_MM_OMNI_API_KEY")
+    return resolve_openai_endpoint({"base_url": base_url, "api_key": api_key})
+
+
+def omni_protocol(base_url: str) -> str:
+    """``"dashscope"`` or ``"openai"``: which request format the Omni endpoint at ``base_url`` takes.
+
+    DashScope wants ``input_audio.data`` as a ``data:;base64,`` URL and ``fps``/``max_pixels`` at
+    the top of a ``video_url`` part. Other OpenAI-compatible servers (OpenRouter,
+    Gemini, vLLM, llama.cpp, …) take the OpenAI spec: raw base64 audio and plain ``video_url`` parts.
+    QWEN_MM_OMNI_PROTOCOL forces one; ``auto`` picks DashScope only for DashScope hosts.
+    """
+    configured = (get_env("QWEN_MM_OMNI_PROTOCOL") or "auto").lower()
+    if configured in ("openai", "dashscope"):
+        return configured
+    host = urlsplit(base_url).hostname or ""
+    return "dashscope" if host == "aliyuncs.com" or host.endswith(".aliyuncs.com") else "openai"
+
+
+_DASHSCOPE_VIDEO_KEYS = ("fps", "max_pixels")
+
+
+def adapt_omni_messages(messages: list[dict[str, Any]], protocol: str) -> list[dict[str, Any]]:
+    """Rewrite Omni content parts into ``protocol``'s wire format without mutating ``messages``.
+
+    The part builders emit the DashScope form; for the ``openai`` protocol this drops the
+    DashScope-only ``video_url`` sampling keys and unwraps ``data:…;base64,`` audio to raw base64.
+    """
+    if protocol == "dashscope":
+        return messages
+    adapted = []
+    for message in messages:
+        content = message.get("content")
+        if not isinstance(content, list):
+            adapted.append(message)
+            continue
+        parts = []
+        for part in content:
+            if isinstance(part, dict) and part.get("type") == "video_url":
+                part = {k: v for k, v in part.items() if k not in _DASHSCOPE_VIDEO_KEYS}
+            elif isinstance(part, dict) and part.get("type") == "input_audio":
+                audio = dict(part.get("input_audio") or {})
+                data = audio.get("data")
+                if isinstance(data, str) and data.startswith("data:") and ";base64," in data:
+                    audio["data"] = data.split(",", 1)[1]
+                part = {**part, "input_audio": audio}
+            parts.append(part)
+        adapted.append({**message, "content": parts})
+    return adapted
 
 
 # ── Content-part builders ────────────────────────────────────────────────────────────────────────
@@ -310,7 +375,7 @@ def call_omni(
     if extra_body:
         body.update(extra_body)
 
-    messages = expand_video_frames(messages)
+    messages = adapt_omni_messages(expand_video_frames(messages), omni_protocol(base_url))
 
     retryable = (
         openai.RateLimitError,

@@ -267,7 +267,9 @@ def _build_media_parts(
     return _local_video_parts(file_path, fps, max_pixels, cleanup, max_video_sec, model)
 
 
-def _dry_run_blocks(file_path: str, prompt: str, mode: str, fps: float, max_pixels: int, model: str) -> list[dict]:
+def _dry_run_blocks(
+    file_path: str, prompt: str, mode: str, fps: float, max_pixels: int, model: str, base_url: str = ""
+) -> list[dict]:
     """Preview a request without reading media, invoking ffmpeg, or calling the model."""
     if mode == "video" or (
         (mode != "audio" or contains_temporary_oss_url(file_path)) and has_video_extension(file_path)
@@ -291,6 +293,7 @@ def _dry_run_blocks(file_path: str, prompt: str, mode: str, fps: float, max_pixe
     else:
         media = {"type": "input_audio", "source": os.path.basename(file_path), "note": "<base64/url elided in dry_run>"}
     preview = {
+        "endpoint": base_url,
         "model": model,
         "stream": True,
         "stream_options": {"include_usage": True},
@@ -328,7 +331,7 @@ def run_omni(
     base_url, api_key = resolve_omni_endpoint(arguments)
 
     if arguments.get("dry_run"):
-        return None, _dry_run_blocks(file_path, prompt, mode, fps, max_pixels, model)
+        return None, _dry_run_blocks(file_path, prompt, mode, fps, max_pixels, model, base_url)
 
     cleanup: list[str] = []
     try:

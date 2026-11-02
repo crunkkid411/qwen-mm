@@ -5,7 +5,7 @@ source media before cutting, overlaying, grading, generating support assets,
 or choosing a visual treatment.
 
 Core perception MCP tools (`read_video`, `read_image`, `visualize`,
-`transcribe_audio` — see `mcps/core-perception.md`) are the agent's eyes.
+`omni_asr_timestamped`, `perceive_media` — see `mcps/core-perception.md`) are the agent's eyes.
 Before claiming a video was inspected, verify the tool is actually registered
 in the current runtime. If `read_video` is unavailable, say so — do not
 pretend the visual review happened.

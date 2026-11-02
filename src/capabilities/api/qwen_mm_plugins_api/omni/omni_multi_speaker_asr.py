@@ -32,7 +32,7 @@ TOOL = {"name": "omni_multi_speaker_asr", "args": OmniMultiSpeakerAsrArgs}
 
 def handle(arguments: dict[str, Any]) -> list[dict[str, Any]]:
     """Transcribe multi-speaker speech with speaker diarization: distinguishes and labels different
-    speakers, with start/end timestamps per segment, using the Qwen-Omni model. Returns diarized
+    speakers, with start/end timestamps per segment, using the configured Omni model. Returns diarized
     segments plus an SRT rendering with speaker tags. The model uses the recommended speaker-token
     output, which the plugin parses locally. Missing wrapper tokens and partial output are tolerated;
     recovered segments and the raw reply are returned with warnings when needed. The default uses

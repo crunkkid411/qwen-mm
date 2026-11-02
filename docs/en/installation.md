@@ -195,6 +195,35 @@ a missing key then raises an error instead of falling back.
 `image_search` always uses Serper Lens, independently of `QWEN_MM_SEARCH_BACKEND`, and raises an
 error when `SERPER_API_KEY` is unavailable.
 
+### Omni models from other providers or a local server
+
+Every Omni tool (transcription, audio-video understanding, grounding, counting, omni-memory,
+omni-video2note, Omni ChatCut and omnidr media reading) calls one configurable omni model. Qwen-Omni
+on DashScope is the default; any OpenAI-compatible endpoint serving a model that takes audio and
+video works instead, without moving the VL or generation settings:
+
+| Variable | Set to |
+|---|---|
+| `QWEN_MM_OMNI_BASE_URL` | The provider's OpenAI-compatible base URL, or your local server's |
+| `QWEN_MM_OMNI_API_KEY` | That provider's key; leave unset for a local server without one |
+| `QWEN_MM_API_OMNI_MODEL` | The model id exactly as that endpoint lists it |
+| `QWEN_MM_OMNI_VIDEO_INPUT` | `frames` when the model takes images and audio but not video files |
+
+```bash
+# A local server (llama.cpp llama-server shown; vLLM, LM Studio and others work the same way)
+bash install.sh configure QWEN_MM_OMNI_BASE_URL=http://127.0.0.1:8080/v1 QWEN_MM_API_OMNI_MODEL=<model-id>
+
+# A hosted provider (OpenRouter shown)
+bash install.sh configure QWEN_MM_OMNI_BASE_URL=https://openrouter.ai/api/v1 \
+  QWEN_MM_OMNI_API_KEY="$OPENROUTER_API_KEY" QWEN_MM_API_OMNI_MODEL=<model-id>
+```
+
+Requests use the standard OpenAI format (`video_url` parts and raw base64 `input_audio`) everywhere
+except DashScope hosts, which keep the DashScope format. `QWEN_MM_OMNI_PROTOCOL=openai|dashscope`
+overrides that choice, for example for a proxy in front of DashScope. With `frames`, local video is
+sent as timestamped frames plus its audio track; a remote video URL is still passed as a URL.
+Check `dry_run=true` on any Omni tool to see the endpoint and model it will call.
+
 ### Common system tools
 
 | Tool | Used by |

@@ -34,7 +34,7 @@ _PROMPT = (
 
 def handle(arguments: dict[str, Any]) -> list[dict[str, Any]]:
     """Count how many times a specified event/object/action occurs in an audio/video, returning the
-    total count and the timestamp of each occurrence, using the Qwen-Omni model (reads frames +
+    total count and the timestamp of each occurrence, using the configured Omni model (reads frames +
     audio). A local file is uploaded inline, where the endpoint caps a media item at 10 MB of
     base64, so it is transcoded to fit — about 9 min at the default 1 fps / 448² sampling (less at a
     higher fps). A longer local video is delivered another way automatically: uploaded to OSS when

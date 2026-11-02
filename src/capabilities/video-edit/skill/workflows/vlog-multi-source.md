@@ -22,7 +22,7 @@ For every clip, record:
 
 Practical technique:
 
-- **Transcribe first.** If a clip has speech, run it through `transcribe_audio` even roughly — this speeds up writing captions and doubles as future subtitle material.
+- **Transcribe first.** If a clip has speech, run it through `omni_asr_timestamped` even roughly — this speeds up writing captions and doubles as future subtitle material.
 - **Build a keyword index.** Group clips by recurring keyword (all "laughing" clips, all "scenic B-roll" clips) so later phases can reverse-lookup by keyword instead of re-scanning raw footage.
 - **Sampling depth.** Use `read_video` at ~1fps per clip to fill in Caption/Emotion/Quality — this extends `review/source-review.md`'s content-review requirement with a structured log, it does not replace the technical probe.
 

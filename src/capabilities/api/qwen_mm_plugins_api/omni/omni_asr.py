@@ -32,7 +32,7 @@ _PROMPT = (
 
 def handle(arguments: dict[str, Any]) -> list[dict[str, Any]]:
     """Transcribe all speech in an audio/video file into ONE continuous plain-text string, with no
-    timestamps, using the Qwen-Omni model. For timestamps use omni_asr_timestamped; for speaker
+    timestamps, using the configured Omni model. For timestamps use omni_asr_timestamped; for speaker
     labels use omni_multi_speaker_asr. Defaults to audio-only, extracting the track from local videos
     and HTTP(S) video URLs. Temporary oss:// video URLs are decoded server-side with frames and
     audio intact; provide an audio URL or local file for strictly audio-only processing. Use

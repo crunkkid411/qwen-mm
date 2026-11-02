@@ -9,7 +9,7 @@ import threading
 import time
 from typing import Any
 
-from shared.api_omni import OMNI_MAX_B64_BYTES, inline_b64_item_bytes
+from shared.api_omni import OMNI_MAX_B64_BYTES, adapt_omni_messages, inline_b64_item_bytes, omni_protocol
 from shared.api_openai import expand_video_frames
 from shared.dashscope_upload import OSS_RESOLVE_HEADER, contains_temporary_oss_url
 
@@ -83,7 +83,7 @@ async def _call_omni_text_async(
     import httpx
     import openai
 
-    prepared = expand_video_frames(messages)
+    prepared = adapt_omni_messages(expand_video_frames(messages), omni_protocol(config._base_url))
     for attempt in range(1, _ATTEMPTS + 1):
         started = time.monotonic()
         remaining = config.deadline - started

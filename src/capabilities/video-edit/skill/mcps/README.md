@@ -23,7 +23,7 @@ If a tool is unavailable:
 ## Core Perception Tools (Use First)
 
 The agent's eyes — `read_video`, `read_image`, `visualize`,
-`transcribe_audio`, `save_view`, `vision_chat`. Content-driven editing
+`omni_asr_timestamped`, `perceive_media`, `save_view`, `vision_chat`. Content-driven editing
 starts with them, before FFmpeg/HyperFrames execution. Usage patterns,
 high-FPS key-window rule and evidence templates: `core-perception.md`.
 

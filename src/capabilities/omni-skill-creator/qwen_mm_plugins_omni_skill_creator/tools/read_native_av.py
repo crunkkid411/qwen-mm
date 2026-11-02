@@ -19,10 +19,12 @@ from pydantic import BaseModel, Field
 from shared import dashscope_upload, omni_media, oss
 from shared.api_omni import (
     DEFAULT_OMNI_MAX_PIXELS,
+    adapt_omni_messages,
     contains_temporary_oss_url,
     expand_video_frames,
     is_omni_url,
     omni_audio_part,
+    omni_protocol,
     omni_video_max_sec,
     omni_video_part,
     resolve_omni_endpoint,
@@ -222,7 +224,9 @@ def _openai_call(
     content.append({"type": "text", "text": prompt})
     body = {
         "model": model,
-        "messages": expand_video_frames([{"role": "user", "content": content}]),
+        "messages": adapt_omni_messages(
+            expand_video_frames([{"role": "user", "content": content}]), omni_protocol(resolved_base)
+        ),
         "max_tokens": max_output_tokens,
         "stream": True,
         "modalities": ["text"],

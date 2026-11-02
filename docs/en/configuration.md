@@ -97,6 +97,10 @@ come from [`CONFIG_FIELDS`](../../src/shared/env.py); `—` means unset or disab
 | `DASHSCOPE_UPLOAD_POLICY_URL` | — | temporary OSS policy endpoint for oversized Omni and VL media; inferred for official DashScope hosts |
 | `QWEN_MM_API_VL_MODEL` | qwen3.7-plus | default VL model for vision_chat, OCR, grounding, text-only image captions, and video-spatio VLM tools |
 | `QWEN_MM_API_OMNI_MODEL` | qwen3.8-omni-flash | default Omni model for audio/video understanding tools, omni-memory, and Omni ChatCut |
+| `QWEN_MM_OMNI_BASE_URL` | — | OpenAI-compatible endpoint for Omni (audio + video) calls: any provider or local server; unset uses DASHSCOPE_BASE_URL |
+| `QWEN_MM_OMNI_API_KEY` | — | API key for QWEN_MM_OMNI_BASE_URL; unset uses the host's own key variable, or none for local servers *(secret)* |
+| `QWEN_MM_OMNI_PROTOCOL` | auto | Omni request format (auto: DashScope format on DashScope hosts, standard OpenAI format elsewhere) |
+| `QWEN_MM_OMNI_VIDEO_INPUT` | video | video sends local video files; frames sends sampled frames + the audio track, for servers without video input |
 | `SAM3_SERVER_URL` | — | segmentation SAM3 server URL |
 | `ASR_SERVER_URLS` | — | self-hosted ASR fallback URLs (comma-separated) |
 

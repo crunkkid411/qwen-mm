@@ -571,6 +571,11 @@ def frames_and_audio_parts(
     return parts
 
 
+def frames_only() -> bool:
+    """True when local video must travel as frames plus audio (QWEN_MM_OMNI_VIDEO_INPUT=frames)."""
+    return (get_env("QWEN_MM_OMNI_VIDEO_INPUT") or "video").lower() == "frames"
+
+
 def local_video_parts(
     file_path: str,
     fps: float,
@@ -586,9 +591,22 @@ def local_video_parts(
     frames_and_audio_parts_fn: Callable[..., list[dict]] = frames_and_audio_parts,
     transcode_and_upload_fn: Callable[..., str] = transcode_and_upload,
 ) -> list[dict]:
-    """Route a local video range: inline file, OSS URL, or frames plus audio."""
+    """Route a local video range: inline file, OSS URL, or frames plus audio.
+
+    QWEN_MM_OMNI_VIDEO_INPUT=frames always sends frames plus audio, for omni servers that take
+    images and audio but not video files.
+    """
     from shared.video import video_duration_exceeds
 
+    if frames_only():
+        return frames_and_audio_parts_fn(
+            file_path,
+            fps,
+            max_pixels,
+            cleanup,
+            start_time=start_time,
+            duration=duration,
+        )
     exceeds = duration > max_video_sec if duration is not None and max_video_sec else False
     if duration is None:
         exceeds = video_duration_exceeds(file_path, max_video_sec)
@@ -773,7 +791,9 @@ def build_media_parts(
             else [omni_audio_part(file_path)]
         )
     start_time, duration = normalize_local_range(file_path, start_time, duration)
-    if base_url is not None and api_key is not None and start_time == 0 and duration is None:
+    # Frames-only servers never receive a whole video file, so a video skips the temporary upload.
+    video_as_frames = frames_only() and mode != "audio" and has_video_stream(file_path)
+    if base_url is not None and api_key is not None and start_time == 0 and duration is None and not video_as_frames:
         temporary = temporary_oss_parts(
             file_path,
             mode,

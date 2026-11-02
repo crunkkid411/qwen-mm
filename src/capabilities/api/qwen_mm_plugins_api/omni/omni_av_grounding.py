@@ -40,7 +40,7 @@ _PROMPT = (
 
 def handle(arguments: dict[str, Any]) -> list[dict[str, Any]]:
     """Temporal grounding: given a text query, locate the time segment(s) in an audio/video where it
-    occurs, returning start/end seconds per match, using the Qwen-Omni model (reads frames + audio).
+    occurs, returning start/end seconds per match, using the configured Omni model (reads frames + audio).
     Use audio_event mode for a specified sound label with the official sound-localization prompt.
     That mode returns type/start/end for each occurrence; score and reason are not manufactured.
     Extra fields, differing labels, and timestamp mistakes are retained with warnings. Numeric and

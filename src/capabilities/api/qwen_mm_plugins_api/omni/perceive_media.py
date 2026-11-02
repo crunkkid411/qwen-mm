@@ -39,6 +39,7 @@ TOOL = {"name": "perceive_media", "args": PerceiveMediaArgs}
 
 def _dry_run(arguments: dict[str, Any], model: str) -> list[dict[str, str]]:
     preview = {
+        "endpoint": resolve_omni_endpoint(arguments)[0],
         "model": model,
         "file_path": arguments["file_path"],
         "media_type": arguments.get("media_type", "auto"),

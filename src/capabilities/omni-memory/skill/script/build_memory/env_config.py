@@ -33,6 +33,8 @@ EnvBool = Annotated[
     AfterValidator(lambda value: value in ("1", "true", "yes", "on")),
 ]
 SearchBackend = Annotated[Literal["auto", "serper", "tavily", "exa", "serply"], BeforeValidator(str.lower)]
+OmniProtocol = Annotated[Literal["auto", "openai", "dashscope"], BeforeValidator(str.lower)]
+OmniVideoInput = Annotated[Literal["video", "frames"], BeforeValidator(str.lower)]
 
 # Ordinary settings: group -> name -> (Pydantic type, Field).
 # This is the single definition of defaults, constraints and Configure/docs metadata.
@@ -89,6 +91,35 @@ CONFIG_FIELDS = {
             Field(
                 default="qwen3.8-omni-flash",
                 description="default Omni model for audio/video understanding tools, omni-memory, and Omni ChatCut",
+            ),
+        ),
+        "QWEN_MM_OMNI_BASE_URL": (
+            str | None,
+            Field(
+                default=None,
+                description="OpenAI-compatible endpoint for Omni (audio + video) calls: any provider or local server; unset uses DASHSCOPE_BASE_URL",
+            ),
+        ),
+        "QWEN_MM_OMNI_API_KEY": (
+            str | None,
+            Field(
+                default=None,
+                description="API key for QWEN_MM_OMNI_BASE_URL; unset uses the host's own key variable, or none for local servers",
+                repr=False,
+            ),
+        ),
+        "QWEN_MM_OMNI_PROTOCOL": (
+            OmniProtocol,
+            Field(
+                default="auto",
+                description="Omni request format (auto: DashScope format on DashScope hosts, standard OpenAI format elsewhere)",
+            ),
+        ),
+        "QWEN_MM_OMNI_VIDEO_INPUT": (
+            OmniVideoInput,
+            Field(
+                default="video",
+                description="video sends local video files; frames sends sampled frames + the audio track, for servers without video input",
             ),
         ),
         "SAM3_SERVER_URL": (str | None, Field(default=None, description="segmentation SAM3 server URL")),
@@ -382,8 +413,12 @@ DEFAULT_EMBED_MODEL = "text-embedding-v4"
 def chat_config():
     """(base_url, model, api_key) for the omni model: extraction, planning, answering, replay.
 
-    Same DashScope endpoint, credential and Omni model setting as the api capability.
+    Same endpoint, credential and Omni model settings as the api capability: QWEN_MM_OMNI_BASE_URL
+    (with QWEN_MM_OMNI_API_KEY) points at another provider or a local server, else DashScope.
     """
+    omni_url = get_env("QWEN_MM_OMNI_BASE_URL")
+    if omni_url:
+        return (omni_url, get_env("QWEN_MM_API_OMNI_MODEL"), get_env("QWEN_MM_OMNI_API_KEY") or "EMPTY")
     return (get_env("DASHSCOPE_BASE_URL"), get_env("QWEN_MM_API_OMNI_MODEL"), get_env("DASHSCOPE_API_KEY", "EMPTY"))
 
 

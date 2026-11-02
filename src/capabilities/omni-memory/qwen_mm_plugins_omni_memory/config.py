@@ -26,8 +26,12 @@ DEFAULT_EMBED_MODEL = "text-embedding-v4"
 def chat_config():
     """(base_url, model, api_key) for the omni model: extraction, planning, answering, replay.
 
-    Same DashScope endpoint, credential and Omni model setting as the api capability.
+    Same endpoint, credential and Omni model settings as the api capability: QWEN_MM_OMNI_BASE_URL
+    (with QWEN_MM_OMNI_API_KEY) points at another provider or a local server, else DashScope.
     """
+    omni_url = get_env("QWEN_MM_OMNI_BASE_URL")
+    if omni_url:
+        return (omni_url, get_env("QWEN_MM_API_OMNI_MODEL"), get_env("QWEN_MM_OMNI_API_KEY") or "EMPTY")
     return (get_env("DASHSCOPE_BASE_URL"), get_env("QWEN_MM_API_OMNI_MODEL"), get_env("DASHSCOPE_API_KEY", "EMPTY"))
 
 

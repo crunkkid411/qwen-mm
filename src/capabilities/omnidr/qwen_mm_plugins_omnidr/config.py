@@ -9,11 +9,12 @@ from .common import InputError, is_provider_policy_error, public_url
 
 
 def omni_settings(model=None):
-    base = (get_env("DASHSCOPE_BASE_URL") or DEFAULT_DASHSCOPE_BASE_URL).strip().rstrip("/")
+    base, key = api_omni.resolve_omni_endpoint({})
+    base = (base or DEFAULT_DASHSCOPE_BASE_URL).strip().rstrip("/")
     public_url(base)
-    key = (get_env("DASHSCOPE_API_KEY") or "").strip()
-    if not key:
-        raise InputError("Set DASHSCOPE_API_KEY before requesting media understanding.")
+    key = (key or "").strip()
+    if (not key or key == "EMPTY") and api_omni.omni_protocol(base) == "dashscope":
+        raise InputError("Set DASHSCOPE_API_KEY (or QWEN_MM_OMNI_BASE_URL for another provider) first.")
     selected = (model or get_env("QWEN_MM_API_OMNI_MODEL") or DEFAULT_OMNI_MODEL).strip()
     if not selected:
         raise InputError("QWEN_MM_API_OMNI_MODEL must name an Omni-compatible model.")
@@ -37,7 +38,7 @@ def call_omni(*, base_url, api_key, model, messages, timeout=None, temperature=N
 
     if any(size > api_omni.OMNI_MAX_B64_BYTES for size in api_omni.inline_b64_item_bytes(messages)):
         raise InputError("An inline media item exceeds 10 MB; reduce its size or inspect a shorter interval.")
-    messages = expand_video_frames(messages)
+    messages = api_omni.adapt_omni_messages(expand_video_frames(messages), api_omni.omni_protocol(base_url))
     request = {"temperature": temperature} if temperature is not None else {}
     client = openai.OpenAI(
         api_key=api_key, base_url=base_url, timeout=timeout, organization="", project="", max_retries=0

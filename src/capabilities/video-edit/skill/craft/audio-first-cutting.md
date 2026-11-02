@@ -2,7 +2,7 @@
 
 > **Bridge notice.** This document owns *where cut candidates come from* in
 > speech-led footage. Subtitle styling and narration writing live in the
-> `hyperframes` skill family; transcription tooling is `transcribe_audio`
+> `hyperframes` skill family; transcription tooling is `omni_asr_timestamped`
 > (see `mcps/core-perception.md`).
 
 ## Principle
@@ -32,8 +32,10 @@ the reaction** — the laugh IS the beat. Transcript events like `(laughs)`,
 
 ## Workflow
 
-1. **Transcribe first** (`transcribe_audio`) — word-level timestamps become
-   both the cut map and future subtitle material. Cache per source; never
+1. **Transcribe first** (`omni_asr_timestamped`, the configured omni model) —
+   utterance timestamps become both the cut map and future subtitle material;
+   refine each cut to the word boundary on the waveform
+   (`scripts/timeline_view.py`). Cache per source; never
    re-transcribe unchanged files.
 2. **Pre-scan for problems:** verbal slips, false starts, mis-speaks — list
    them so the selection step avoids them.

@@ -116,10 +116,14 @@ class PipelineConfig:
             if getattr(self, name) and getattr(self, name) != self.omni_model:
                 self.warnings.append(f"{name} is deprecated and ignored; all model stages use omni_model.")
             setattr(self, name, self.omni_model)
-        # Pass the configured key explicitly: compatible endpoints may use an unlisted host.
-        self._base_url, self._api_key = resolve_omni_endpoint(
-            {"base_url": get_env("DASHSCOPE_BASE_URL", refresh_config=True), "api_key": api_key}
-        )
+        # Pass the configured key explicitly: compatible endpoints may use an unlisted host. A
+        # configured QWEN_MM_OMNI_BASE_URL (another provider or a local server) takes precedence.
+        if get_env("QWEN_MM_OMNI_BASE_URL", refresh_config=True):
+            self._base_url, self._api_key = resolve_omni_endpoint({})
+        else:
+            self._base_url, self._api_key = resolve_omni_endpoint(
+                {"base_url": get_env("DASHSCOPE_BASE_URL", refresh_config=True), "api_key": api_key}
+            )
         self.validate()
 
     @property

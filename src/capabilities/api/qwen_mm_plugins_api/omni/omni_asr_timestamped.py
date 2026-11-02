@@ -31,7 +31,7 @@ _PROMPT = "Write SRT captions including the numeric counter and timecodes for sp
 
 
 def handle(arguments: dict[str, Any]) -> list[dict[str, Any]]:
-    """Transcribe speech with utterance-level timestamps using the Qwen-Omni model. The model returns
+    """Transcribe speech with utterance-level timestamps using the configured Omni model. The model returns
     numbered SRT captions, which the plugin parses into segments with start/end seconds and an SRT
     rendering. Missing hours/counters/separators are tolerated. Partial or unparseable model output
     returns the recoverable segments or original text with warnings. Timestamp granularity is fixed
