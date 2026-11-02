@@ -27,6 +27,14 @@ The agent's eyes — `read_video`, `read_image`, `visualize`,
 starts with them, before FFmpeg/HyperFrames execution. Usage patterns,
 high-FPS key-window rule and evidence templates: `core-perception.md`.
 
+## Local Edit Engine Tools
+
+`analyze_footage` (probe, shot changes, silences, speech spans, optional
+local transcript) and `render_edit` (spec → one deterministic FFmpeg
+render) ship with this plugin's server. They run locally with no API key;
+they are the FFmpeg engine's executor, not a separate engine
+(`../engines/edit-engine.md`).
+
 ## Generation Service Roles
 
 | Tool | Role | Handoff |

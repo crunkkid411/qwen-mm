@@ -5,7 +5,7 @@ Two engines, one ownership rule:
 | Engine | Role |
 |--------|------|
 | **HyperFrames** | Assembles the *deliverable* for any user-facing designed output — full creative pipeline, handed off, not re-implemented (see `hyperframes.md`) |
-| **FFmpeg** | Prep and finishing: probing, re-encode for seeking, per-clip correction, audio mux, mechanical trims (see `ffmpeg-direct.md`) |
+| **FFmpeg** | Prep and finishing: probing, re-encode for seeking, per-clip correction, audio mux, mechanical trims (see `ffmpeg-direct.md`). Spec-driven assembly runs through the deterministic edit engine (`render_edit` / `analyze_footage`, see `edit-engine.md`) |
 
 **Default:** if the deliverable is meant to be watched (vlog, montage, intro,
 promo, recap — anything with designed motion, text or structure), the final
