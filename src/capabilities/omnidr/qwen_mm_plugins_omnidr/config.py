@@ -9,12 +9,17 @@ from .common import InputError, is_provider_policy_error, public_url
 
 
 def omni_settings(model=None):
-    base, key = api_omni.resolve_omni_endpoint({})
-    base = (base or DEFAULT_DASHSCOPE_BASE_URL).strip().rstrip("/")
+    omni_base = (get_env("QWEN_MM_OMNI_BASE_URL") or "").strip()
+    if omni_base:
+        # Another provider or a local server: its own key, or none for a keyless local server.
+        base = omni_base.rstrip("/")
+        key = (get_env("QWEN_MM_OMNI_API_KEY") or "").strip() or "EMPTY"
+    else:
+        base = (get_env("DASHSCOPE_BASE_URL") or DEFAULT_DASHSCOPE_BASE_URL).strip().rstrip("/")
+        key = (get_env("DASHSCOPE_API_KEY") or "").strip()
+        if not key:
+            raise InputError("Set DASHSCOPE_API_KEY (or QWEN_MM_OMNI_BASE_URL for another provider) first.")
     public_url(base)
-    key = (key or "").strip()
-    if (not key or key == "EMPTY") and api_omni.omni_protocol(base) == "dashscope":
-        raise InputError("Set DASHSCOPE_API_KEY (or QWEN_MM_OMNI_BASE_URL for another provider) first.")
     selected = (model or get_env("QWEN_MM_API_OMNI_MODEL") or DEFAULT_OMNI_MODEL).strip()
     if not selected:
         raise InputError("QWEN_MM_API_OMNI_MODEL must name an Omni-compatible model.")

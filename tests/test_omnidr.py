@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import importlib.util
 import json
 import shutil
@@ -1826,6 +1827,7 @@ def test_model_settings_resolve_only_three_service_fields(monkeypatch, override)
         "DASHSCOPE_API_KEY": "synthetic-key",
         "DASHSCOPE_BASE_URL": "https://provider.invalid/v1/",
         "QWEN_MM_API_OMNI_MODEL": "fixture-omni-model",
+        "QWEN_MM_OMNI_BASE_URL": None,
     }
     requested = []
 
@@ -1840,7 +1842,18 @@ def test_model_settings_resolve_only_three_service_fields(monkeypatch, override)
         "synthetic-key",
         override or "fixture-omni-model",
     )
-    assert set(requested) == (set(values) if override is None else {"DASHSCOPE_BASE_URL", "DASHSCOPE_API_KEY"})
+    expected = {"QWEN_MM_OMNI_BASE_URL", "DASHSCOPE_BASE_URL", "DASHSCOPE_API_KEY"}
+    assert set(requested) == (set(values) if override is None else expected)
+
+
+def test_model_settings_follow_a_configured_omni_endpoint(monkeypatch):
+    from qwen_mm_plugins_omnidr import config
+
+    values = {"QWEN_MM_OMNI_BASE_URL": "http://127.0.0.1:8080/v1/", "QWEN_MM_API_OMNI_MODEL": "local-omni"}
+    monkeypatch.setattr(config, "get_env", lambda name, *args: values.get(name))
+    assert config.omni_settings() == ("http://127.0.0.1:8080/v1", "EMPTY", "local-omni")
+    values["QWEN_MM_OMNI_API_KEY"] = "provider-key"
+    assert config.omni_settings()[1] == "provider-key"
 
 
 @pytest.mark.parametrize("engine", ["auto", "shared"])
@@ -2338,6 +2351,7 @@ def test_every_modality_and_page_answer_use_three_settings_and_streaming(
         "DASHSCOPE_API_KEY": "synthetic-key",
         "DASHSCOPE_BASE_URL": "https://provider.invalid/v1",
         "QWEN_MM_API_OMNI_MODEL": "fixture-omni-model",
+        "QWEN_MM_OMNI_BASE_URL": None,
     }
     requested, calls, clients, closed = [], [], [], []
 
@@ -2349,7 +2363,14 @@ def test_every_modality_and_page_answer_use_three_settings_and_streaming(
     shared_get_env = env.get_env
 
     def forbidden_setting(name, *args):
-        if name in {"QWEN_MM_CHAT_TIMEOUT", "QWEN_MM_FFMPEG_TIMEOUT"}:
+        # Timeouts plus the Omni wire-format settings (request format, video as file or frames).
+        allowed = {
+            "QWEN_MM_CHAT_TIMEOUT",
+            "QWEN_MM_FFMPEG_TIMEOUT",
+            "QWEN_MM_OMNI_PROTOCOL",
+            "QWEN_MM_OMNI_VIDEO_INPUT",
+        }
+        if name in allowed:
             return shared_get_env(name, *args)
         pytest.fail(f"A reader must not resolve an additional setting: {name}")
 
@@ -2411,7 +2432,9 @@ def test_every_modality_and_page_answer_use_three_settings_and_streaming(
     assert "temperature" not in request and "max_tokens" not in request
     if mode == "audio":
         part = next(p["input_audio"] for p in request["messages"][-1]["content"] if p["type"] == "input_audio")
-        assert part["data"].startswith("data:;base64,") and part["format"] == "wav"
+        # provider.invalid is not a DashScope host, so audio travels as standard raw base64.
+        assert not part["data"].startswith("data:") and part["format"] == "wav"
+        base64.b64decode(part["data"], validate=True)
 
 
 @pytest.mark.parametrize("media_type", ["image", "video", "audio", "raw_audio"])

@@ -197,6 +197,8 @@ error when `SERPER_API_KEY` is unavailable.
 
 ### Omni models from other providers or a local server
 
+A step-by-step version for non-developers: [Using other models](other_models.md).
+
 Every Omni tool (transcription, audio-video understanding, grounding, counting, omni-memory,
 omni-video2note, Omni ChatCut and omnidr media reading) calls one configurable omni model. Qwen-Omni
 on DashScope is the default; any OpenAI-compatible endpoint serving a model that takes audio and

@@ -229,11 +229,11 @@ def static_svg(content: str) -> bool:
 def privacy_errors(root: Path) -> list[str]:
     """Reject credentials, private endpoints and cache/model files."""
     errors = []
-    secret = get_env("DASHSCOPE_API_KEY")
-    secret_values = [secret] if secret and len(secret) >= 8 else []
-    connection = get_env("DASHSCOPE_BASE_URL") or ""
-    host = urlsplit(connection).hostname or ""
-    private_host = host if host and host not in {"dashscope.aliyuncs.com", "dashscope-intl.aliyuncs.com"} else ""
+    secrets = (get_env("DASHSCOPE_API_KEY"), get_env("QWEN_MM_OMNI_API_KEY"))
+    secret_values = [secret for secret in secrets if secret and len(secret) >= 8]
+    public_hosts = {"dashscope.aliyuncs.com", "dashscope-intl.aliyuncs.com"}
+    hosts = {urlsplit(get_env(name) or "").hostname or "" for name in ("DASHSCOPE_BASE_URL", "QWEN_MM_OMNI_BASE_URL")}
+    private_hosts = sorted(host for host in hosts if host and host not in public_hosts)
     for path in root.rglob("*"):
         if path.is_symlink():
             errors.append("Report contains a symlink; deliver self-contained regular files.")
@@ -271,7 +271,7 @@ def privacy_errors(root: Path) -> list[str]:
             errors.append("A text artifact exceeds the privacy scan limit; reduce or remove it before delivery.")
             continue
         content = path.read_text(encoding="utf-8", errors="replace")
-        if any(value in content for value in secret_values) or (private_host and private_host in content):
+        if any(value in content for value in secret_values) or any(host in content for host in private_hosts):
             errors.append("Report contains a configured secret or private model endpoint; redact it before sharing.")
         if credential_marker(content):
             errors.append("Report contains credential-like content; remove it before sharing.")

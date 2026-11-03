@@ -62,6 +62,9 @@ Update the capabilities already installed in one harness:
 curl -fsSL https://raw.githubusercontent.com/QwenLM/Qwen-MM-Plugins/main/install.sh | bash -s -- update
 ```
 
+**Using models other than Qwen** (another provider, or a model running on your own PC): see
+[Using other models](docs/en/other_models.md).
+
 Released capabilities use independent, immutable tags. For local checkout installs, rollback,
 manual skill + MCP setup, dependencies, and Windows/WSL2, see the
 [installation guide](docs/en/installation.md).
